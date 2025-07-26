@@ -6,9 +6,15 @@
 //
 
 import SwiftUI
+import FirebaseCore // Import Firebase
 
 @main
 struct galaxy_watchApp: App {
+    // Add this initializer
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Galaxy Watch App",
+			"type": "shell",
+			"command": "xcodebuild",
+			"args": [
+				"-project",
+				"galaxy watch.xcodeproj",
+				"-scheme",
+				"galaxy watch",
+				"-destination",
+				"platform=iOS Simulator,name=iPhone 16 Pro,OS=18.5",
+				"-configuration",
+				"Debug"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}

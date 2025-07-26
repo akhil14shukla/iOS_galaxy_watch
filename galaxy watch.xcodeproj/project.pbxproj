@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E90947202E34F0460027E9D5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E909471F2E34F0460027E9D5 /* FirebaseAuth */; };
+		E90947222E34F0460027E9D5 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = E90947212E34F0460027E9D5 /* FirebaseFirestore */; };
+		E90947292E3517710027E9D5 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E90947282E3517710027E9D5 /* FirebaseAnalytics */; };
+		E909472B2E3517710027E9D5 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = E909472A2E3517710027E9D5 /* FirebaseAnalyticsCore */; };
+		E909472D2E3517710027E9D5 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = E909472C2E3517710027E9D5 /* FirebaseDatabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E909468D2E34C4510027E9D5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +60,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E909472D2E3517710027E9D5 /* FirebaseDatabase in Frameworks */,
+				E90947202E34F0460027E9D5 /* FirebaseAuth in Frameworks */,
+				E90947222E34F0460027E9D5 /* FirebaseFirestore in Frameworks */,
+				E90947292E3517710027E9D5 /* FirebaseAnalytics in Frameworks */,
+				E909472B2E3517710027E9D5 /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +125,11 @@
 			);
 			name = "galaxy watch";
 			packageProductDependencies = (
+				E909471F2E34F0460027E9D5 /* FirebaseAuth */,
+				E90947212E34F0460027E9D5 /* FirebaseFirestore */,
+				E90947282E3517710027E9D5 /* FirebaseAnalytics */,
+				E909472A2E3517710027E9D5 /* FirebaseAnalyticsCore */,
+				E909472C2E3517710027E9D5 /* FirebaseDatabase */,
 			);
 			productName = "galaxy watch";
 			productReference = E909467F2E34C44F0027E9D5 /* galaxy watch.app */;
@@ -195,6 +213,9 @@
 			);
 			mainGroup = E90946762E34C44F0027E9D5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E90946802E34C44F0027E9D5 /* Products */;
 			projectDirPath = "";
@@ -395,11 +416,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "galaxy watch/galaxy watch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4N7743MV8P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -423,11 +445,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "galaxy watch/galaxy watch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4N7743MV8P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Support/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -558,6 +581,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E909471F2E34F0460027E9D5 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		E90947212E34F0460027E9D5 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		E90947282E3517710027E9D5 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		E909472A2E3517710027E9D5 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
+		};
+		E909472C2E3517710027E9D5 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E909471E2E34F0460027E9D5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E90946772E34C44F0027E9D5 /* Project object */;
 }
