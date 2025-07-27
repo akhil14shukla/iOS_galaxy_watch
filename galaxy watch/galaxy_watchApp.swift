@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
-import FirebaseCore // Import Firebase
+import FirebaseCore // Import Firebase for legacy sync support
 
 @main
 struct galaxy_watchApp: App {
-    // Add this initializer
+    // Initialize Firebase for backward compatibility
+    // Note: Firebase is kept for potential legacy data migration
     init() {
         FirebaseApp.configure()
     }
@@ -18,6 +19,19 @@ struct galaxy_watchApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    // Request necessary permissions on app launch
+                    requestAppPermissions()
+                }
         }
+    }
+    
+    private func requestAppPermissions() {
+        // Request HealthKit permissions
+        let syncManager = HybridSyncManager()
+        syncManager.requestAuthorization()
+        
+        // Additional permission requests can be added here
+        print("Galaxy Watch Hybrid Sync initialized")
     }
 }
