@@ -6,7 +6,7 @@ import Combine
 class LocalServerClient: ObservableObject {
     @Published var isConnected = false
     @Published var serverHost = "192.168.1.100" // Default local IP
-    @Published var serverPort = 8080
+    @Published var serverPort = 3000 // Changed to match server's default port
     @Published var lastError: String?
     
     private var urlSession: URLSession
@@ -84,42 +84,99 @@ class LocalServerClient: ObservableObject {
             return .failure(.notConnected)
         }
         
+        // Convert iOS HealthDataBatch to server format and upload each data type separately
+        let deviceId = "ios_device_001" // Simplified device ID for now
+        let deviceName = "iPhone"
+        let deviceType = "ios"
+        
         do {
-            let url = baseURL.appendingPathComponent("data")
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            let jsonData = try JSONEncoder().encode(batch)
-            request.httpBody = jsonData
-            
-            let (_, response) = try await urlSession.data(for: request)
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                switch httpResponse.statusCode {
-                case 200...299:
-                    await MainActor.run {
-                        self.lastError = nil
+            // Upload heart rate data
+            if !batch.heartRateData.isEmpty {
+                try await uploadDataType(
+                    deviceId: deviceId,
+                    deviceName: deviceName,
+                    deviceType: deviceType,
+                    dataType: "heart_rate",
+                    records: batch.heartRateData.map { heartRate in
+                        [
+                            "timestamp": Int64(heartRate.timestamp.timeIntervalSince1970 * 1000),
+                            "value": heartRate.value,
+                            "unit": "bpm",
+                            "metadata": [
+                                "confidence": heartRate.confidence ?? 0.0
+                            ]
+                        ]
                     }
-                    return .success(())
-                case 400:
-                    return .failure(.badRequest)
-                case 409:
-                    return .failure(.conflict)
-                case 500...599:
-                    return .failure(.serverError)
-                default:
-                    return .failure(.unknownError)
-                }
+                )
             }
             
-            return .failure(.unknownError)
+            // Upload step count data
+            if !batch.stepCountData.isEmpty {
+                try await uploadDataType(
+                    deviceId: deviceId,
+                    deviceName: deviceName,
+                    deviceType: deviceType,
+                    dataType: "steps",
+                    records: batch.stepCountData.map { stepCount in
+                        [
+                            "timestamp": Int64(stepCount.timestamp.timeIntervalSince1970 * 1000),
+                            "value": Double(stepCount.count),
+                            "unit": "steps",
+                            "metadata": stepCount.duration != nil ? [
+                                "duration": stepCount.duration!
+                            ] : [:]
+                        ]
+                    }
+                )
+            }
+            
+            await MainActor.run {
+                self.lastError = nil
+            }
+            return .success(())
         } catch {
             await MainActor.run {
                 self.lastError = error.localizedDescription
             }
             return .failure(.networkError(error))
         }
+    }
+    
+    private func uploadDataType(deviceId: String, deviceName: String, deviceType: String, dataType: String, records: [[String: Any]]) async throws {
+        let url = baseURL.appendingPathComponent("health-data")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody: [String: Any] = [
+            "deviceId": deviceId,
+            "deviceName": deviceName,
+            "deviceType": deviceType,
+            "dataType": dataType,
+            "records": records
+        ]
+        
+        let jsonData = try JSONSerialization.data(withJSONObject: requestBody)
+        request.httpBody = jsonData
+        
+        let (_, response) = try await urlSession.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            switch httpResponse.statusCode {
+            case 200...299:
+                return
+            case 400:
+                throw LocalServerError.badRequest
+            case 409:
+                throw LocalServerError.conflict
+            case 500...599:
+                throw LocalServerError.serverError
+            default:
+                throw LocalServerError.unknownError
+            }
+        }
+        
+        throw LocalServerError.unknownError
     }
     
     // MARK: - Data Download
@@ -130,9 +187,12 @@ class LocalServerClient: ObservableObject {
         }
         
         do {
-            var components = URLComponents(url: baseURL.appendingPathComponent("data"), resolvingAgainstBaseURL: false)!
+            // Generate a device ID for iOS app - simplified for now
+            let deviceId = "ios_device_001"
+            
+            var components = URLComponents(url: baseURL.appendingPathComponent("sync/data/\(deviceId)"), resolvingAgainstBaseURL: false)!
             components.queryItems = [
-                URLQueryItem(name: "since", value: ISO8601DateFormatter().string(from: timestamp))
+                URLQueryItem(name: "since", value: String(Int64(timestamp.timeIntervalSince1970 * 1000)))
             ]
             
             guard let url = components.url else {
