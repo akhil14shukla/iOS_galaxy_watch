@@ -1,11 +1,11 @@
-import SwiftUI
 import HealthKit
+import SwiftUI
 
 struct EnhancedSettingsView: View {
     @StateObject private var healthManager = HealthManager()
     @StateObject private var syncManager = HybridSyncManager.shared
     @StateObject private var bluetoothManager = BluetoothManager()
-    
+
     @State private var isHealthKitAuthorized = false
     @State private var isBluetoothEnabled = false
     @State private var isServerConnected = false
@@ -16,13 +16,13 @@ struct EnhancedSettingsView: View {
     @State private var showingHealthGoals = false
     @State private var showingDataExport = false
     @State private var showingPrivacyInfo = false
-    
+
     enum SyncMethod: String, CaseIterable {
         case wifi = "Wi-Fi Only"
         case bluetooth = "Bluetooth Only"
         case hybrid = "Hybrid (Wi-Fi + Bluetooth)"
     }
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -31,54 +31,57 @@ struct EnhancedSettingsView: View {
                     StatusRow(
                         title: "HealthKit",
                         status: isHealthKitAuthorized ? .connected : .disconnected,
-                        description: isHealthKitAuthorized ? "Health data access granted" : "Health access required"
+                        description: isHealthKitAuthorized
+                            ? "Health data access granted" : "Health access required"
                     ) {
                         if !isHealthKitAuthorized {
                             requestHealthKitPermission()
                         }
                     }
-                    
+
                     StatusRow(
                         title: "Bluetooth",
                         status: isBluetoothEnabled ? .connected : .disconnected,
-                        description: isBluetoothEnabled ? "Bluetooth ready for device sync" : "Bluetooth disabled"
+                        description: isBluetoothEnabled
+                            ? "Bluetooth ready for device sync" : "Bluetooth disabled"
                     ) {
                         // Open Bluetooth settings
                         if let url = URL(string: "App-Prefs:root=Bluetooth") {
                             UIApplication.shared.open(url)
                         }
                     }
-                    
+
                     StatusRow(
                         title: "Local Server",
                         status: isServerConnected ? .connected : .disconnected,
-                        description: isServerConnected ? "Connected to local sync server" : "Server connection unavailable"
+                        description: isServerConnected
+                            ? "Connected to local sync server" : "Server connection unavailable"
                     ) {
                         Task {
                             await syncManager.testConnection()
                         }
                     }
                 }
-                
+
                 // Sync Configuration Section
                 Section("Sync Configuration") {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Sync Method")
                             .font(.headline)
-                        
+
                         Picker("Sync Method", selection: $selectedSyncMethod) {
                             ForEach(SyncMethod.allCases, id: \.self) { method in
                                 Text(method.rawValue).tag(method)
                             }
                         }
                         .pickerStyle(SegmentedPickerStyle())
-                        
+
                         Text(getSyncMethodDescription())
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)
-                    
+
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Text("Sync Interval")
@@ -87,31 +90,31 @@ struct EnhancedSettingsView: View {
                             Text("\(Int(syncInterval))s")
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         Slider(value: $syncInterval, in: 30...300, step: 30) {
                             Text("Sync Interval")
                         }
                         .onChange(of: syncInterval) { newValue in
                             syncManager.setSyncInterval(TimeInterval(newValue))
                         }
-                        
+
                         Text("How often to sync health data")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)
-                    
+
                     Toggle("Background Sync", isOn: $enableBackgroundSync)
                         .onChange(of: enableBackgroundSync) { enabled in
                             syncManager.setBackgroundSyncEnabled(enabled)
                         }
-                    
+
                     Toggle("Sync Notifications", isOn: $enableNotifications)
                         .onChange(of: enableNotifications) { enabled in
                             syncManager.setNotificationsEnabled(enabled)
                         }
                 }
-                
+
                 // Health Goals Section
                 Section("Health Goals") {
                     Button(action: { showingHealthGoals = true }) {
@@ -126,7 +129,7 @@ struct EnhancedSettingsView: View {
                     }
                     .foregroundColor(.primary)
                 }
-                
+
                 // Data Management Section
                 Section("Data Management") {
                     Button(action: { showingDataExport = true }) {
@@ -140,7 +143,7 @@ struct EnhancedSettingsView: View {
                         }
                     }
                     .foregroundColor(.primary)
-                    
+
                     Button(action: clearLocalData) {
                         HStack {
                             Image(systemName: "trash")
@@ -150,7 +153,7 @@ struct EnhancedSettingsView: View {
                     }
                     .foregroundColor(.red)
                 }
-                
+
                 // Privacy & Security Section
                 Section("Privacy & Security") {
                     Button(action: { showingPrivacyInfo = true }) {
@@ -164,7 +167,7 @@ struct EnhancedSettingsView: View {
                         }
                     }
                     .foregroundColor(.primary)
-                    
+
                     NavigationLink(destination: DataPermissionsView()) {
                         HStack {
                             Image(systemName: "lock.shield")
@@ -173,7 +176,7 @@ struct EnhancedSettingsView: View {
                         }
                     }
                 }
-                
+
                 // Advanced Section
                 Section("Advanced") {
                     NavigationLink(destination: DiagnosticsView()) {
@@ -183,7 +186,7 @@ struct EnhancedSettingsView: View {
                             Text("System Diagnostics")
                         }
                     }
-                    
+
                     NavigationLink(destination: DeveloperSettingsView()) {
                         HStack {
                             Image(systemName: "hammer")
@@ -192,7 +195,7 @@ struct EnhancedSettingsView: View {
                         }
                     }
                 }
-                
+
                 // App Information Section
                 Section("App Information") {
                     HStack {
@@ -201,14 +204,14 @@ struct EnhancedSettingsView: View {
                         Text(getAppVersion())
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Build")
                         Spacer()
                         Text(getBuildNumber())
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Device ID")
                         Spacer()
@@ -233,27 +236,27 @@ struct EnhancedSettingsView: View {
             }
         }
     }
-    
+
     private func checkSystemStatus() {
         // Check HealthKit authorization
         isHealthKitAuthorized = healthManager.isAuthorized
-        
+
         // Check Bluetooth status
         isBluetoothEnabled = bluetoothManager.isBluetoothEnabled
-        
+
         // Check server connection
         Task {
             isServerConnected = await syncManager.isServerReachable()
         }
     }
-    
+
     private func requestHealthKitPermission() {
         Task {
             await healthManager.requestPermissions()
             isHealthKitAuthorized = healthManager.isAuthorized
         }
     }
-    
+
     private func getSyncMethodDescription() -> String {
         switch selectedSyncMethod {
         case .wifi:
@@ -264,20 +267,20 @@ struct EnhancedSettingsView: View {
             return "Automatically choose the best connection method. Recommended for most users."
         }
     }
-    
+
     private func clearLocalData() {
         // TODO: Implement data clearing
         syncManager.clearLocalData()
     }
-    
+
     private func getAppVersion() -> String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     }
-    
+
     private func getBuildNumber() -> String {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
     }
-    
+
     private func getDeviceID() -> String {
         UIDevice.current.identifierForVendor?.uuidString.prefix(8).uppercased() ?? "UNKNOWN"
     }
@@ -288,10 +291,10 @@ struct StatusRow: View {
     let status: ConnectionStatus
     let description: String
     let action: (() -> Void)?
-    
+
     enum ConnectionStatus {
         case connected, disconnected, connecting
-        
+
         var color: Color {
             switch self {
             case .connected: return .green
@@ -299,7 +302,7 @@ struct StatusRow: View {
             case .connecting: return .orange
             }
         }
-        
+
         var icon: String {
             switch self {
             case .connected: return "checkmark.circle.fill"
@@ -308,32 +311,33 @@ struct StatusRow: View {
             }
         }
     }
-    
-    init(title: String, status: ConnectionStatus, description: String, action: (() -> Void)? = nil) {
+
+    init(title: String, status: ConnectionStatus, description: String, action: (() -> Void)? = nil)
+    {
         self.title = title
         self.status = status
         self.description = description
         self.action = action
     }
-    
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(title)
                         .font(.headline)
-                    
+
                     Spacer()
-                    
+
                     Image(systemName: status.icon)
                         .foregroundColor(status.color)
                 }
-                
+
                 Text(description)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             if let action = action, status == .disconnected {
                 Button("Fix", action: action)
                     .buttonStyle(.bordered)
@@ -351,7 +355,7 @@ struct HealthGoalsView: View {
     @State private var activeMinutes = 30.0
     @State private var caloriesBurned = 500.0
     @State private var waterIntake = 8.0
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -360,24 +364,24 @@ struct HealthGoalsView: View {
                         Text("Daily Steps: \(Int(dailySteps))")
                         Slider(value: $dailySteps, in: 5000...20000, step: 500)
                     }
-                    
+
                     VStack(alignment: .leading) {
                         Text("Active Minutes: \(Int(activeMinutes))")
                         Slider(value: $activeMinutes, in: 15...120, step: 5)
                     }
-                    
+
                     VStack(alignment: .leading) {
                         Text("Calories Burned: \(Int(caloriesBurned))")
                         Slider(value: $caloriesBurned, in: 200...1000, step: 50)
                     }
                 }
-                
+
                 Section("Sleep & Wellness") {
                     VStack(alignment: .leading) {
                         Text("Sleep Hours: \(sleepHours, specifier: "%.1f")")
                         Slider(value: $sleepHours, in: 6...10, step: 0.5)
                     }
-                    
+
                     VStack(alignment: .leading) {
                         Text("Water Intake (glasses): \(Int(waterIntake))")
                         Slider(value: $waterIntake, in: 4...12, step: 1)
@@ -399,17 +403,17 @@ struct HealthGoalsView: View {
             }
         }
     }
-    
+
     private func saveGoals() {
         // TODO: Save goals to user defaults and sync to server
-        let goals = [
+        let goals: [String: Any] = [
             "dailySteps": Int(dailySteps),
             "sleepHours": sleepHours,
             "activeMinutes": Int(activeMinutes),
             "caloriesBurned": Int(caloriesBurned),
-            "waterIntake": Int(waterIntake)
+            "waterIntake": Int(waterIntake),
         ]
-        
+
         UserDefaults.standard.set(goals, forKey: "healthGoals")
     }
 }
@@ -419,22 +423,22 @@ struct DataExportView: View {
     @State private var selectedTimeRange = TimeRange.lastWeek
     @State private var selectedDataTypes: Set<String> = ["heart_rate", "steps", "sleep"]
     @State private var isExporting = false
-    
+
     enum TimeRange: String, CaseIterable {
         case lastWeek = "Last 7 Days"
         case lastMonth = "Last 30 Days"
         case last3Months = "Last 3 Months"
         case allTime = "All Time"
     }
-    
+
     let dataTypes = [
         "heart_rate": "Heart Rate",
         "steps": "Steps",
         "sleep": "Sleep",
         "calories": "Calories",
-        "distance": "Distance"
+        "distance": "Distance",
     ]
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -445,22 +449,24 @@ struct DataExportView: View {
                         }
                     }
                 }
-                
+
                 Section("Data Types") {
                     ForEach(Array(dataTypes.keys), id: \.self) { key in
-                        Toggle(dataTypes[key] ?? key, isOn: Binding(
-                            get: { selectedDataTypes.contains(key) },
-                            set: { isSelected in
-                                if isSelected {
-                                    selectedDataTypes.insert(key)
-                                } else {
-                                    selectedDataTypes.remove(key)
+                        Toggle(
+                            dataTypes[key] ?? key,
+                            isOn: Binding(
+                                get: { selectedDataTypes.contains(key) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedDataTypes.insert(key)
+                                    } else {
+                                        selectedDataTypes.remove(key)
+                                    }
                                 }
-                            }
-                        ))
+                            ))
                     }
                 }
-                
+
                 Section {
                     Button(action: exportData) {
                         HStack {
@@ -483,10 +489,10 @@ struct DataExportView: View {
             }
         }
     }
-    
+
     private func exportData() {
         isExporting = true
-        
+
         // TODO: Implement data export
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isExporting = false
@@ -497,34 +503,39 @@ struct DataExportView: View {
 
 struct PrivacyInfoView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     privacySection(
                         title: "Health Data Collection",
-                        content: "This app collects health data from HealthKit with your explicit permission. Data includes heart rate, steps, sleep patterns, and other metrics you choose to share."
+                        content:
+                            "This app collects health data from HealthKit with your explicit permission. Data includes heart rate, steps, sleep patterns, and other metrics you choose to share."
                     )
-                    
+
                     privacySection(
                         title: "Data Storage",
-                        content: "Health data is stored locally on your device and synchronized to your local server. No data is sent to third-party services without your consent."
+                        content:
+                            "Health data is stored locally on your device and synchronized to your local server. No data is sent to third-party services without your consent."
                     )
-                    
+
                     privacySection(
                         title: "Data Sharing",
-                        content: "Your health data is only shared with devices and services you explicitly connect. You can revoke access at any time through the app settings."
+                        content:
+                            "Your health data is only shared with devices and services you explicitly connect. You can revoke access at any time through the app settings."
                     )
-                    
+
                     privacySection(
                         title: "Security",
-                        content: "All data transmission uses encrypted connections. Local storage is protected by iOS security features and your device passcode."
+                        content:
+                            "All data transmission uses encrypted connections. Local storage is protected by iOS security features and your device passcode."
                     )
-                    
+
                     privacySection(
                         title: "Your Rights",
-                        content: "You can view, export, or delete your health data at any time. You have full control over what data is collected and how it's used."
+                        content:
+                            "You can view, export, or delete your health data at any time. You have full control over what data is collected and how it's used."
                     )
                 }
                 .padding()
@@ -538,13 +549,13 @@ struct PrivacyInfoView: View {
             }
         }
     }
-    
+
     private func privacySection(title: String, content: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             Text(content)
                 .font(.body)
                 .foregroundColor(.secondary)
@@ -562,7 +573,7 @@ struct DataPermissionsView: View {
                 PermissionRow(title: "Active Energy", isGranted: true)
                 PermissionRow(title: "Distance", isGranted: false)
             }
-            
+
             Section("System Permissions") {
                 PermissionRow(title: "Bluetooth", isGranted: true)
                 PermissionRow(title: "Notifications", isGranted: true)
@@ -577,7 +588,7 @@ struct DataPermissionsView: View {
 struct PermissionRow: View {
     let title: String
     let isGranted: Bool
-    
+
     var body: some View {
         HStack {
             Text(title)
@@ -596,7 +607,7 @@ struct DiagnosticsView: View {
                 DiagnosticRow(title: "HealthKit", status: .connected)
                 DiagnosticRow(title: "Bluetooth", status: .warning)
             }
-            
+
             Section("Performance Metrics") {
                 HStack {
                     Text("Sync Success Rate")
@@ -604,14 +615,14 @@ struct DiagnosticsView: View {
                     Text("95.2%")
                         .foregroundColor(.green)
                 }
-                
+
                 HStack {
                     Text("Average Sync Time")
                     Spacer()
                     Text("2.3s")
                         .foregroundColor(.secondary)
                 }
-                
+
                 HStack {
                     Text("Last Successful Sync")
                     Spacer()
@@ -628,10 +639,10 @@ struct DiagnosticsView: View {
 struct DiagnosticRow: View {
     let title: String
     let status: Status
-    
+
     enum Status {
         case connected, warning, error
-        
+
         var color: Color {
             switch self {
             case .connected: return .green
@@ -639,7 +650,7 @@ struct DiagnosticRow: View {
             case .error: return .red
             }
         }
-        
+
         var text: String {
             switch self {
             case .connected: return "OK"
@@ -648,7 +659,7 @@ struct DiagnosticRow: View {
             }
         }
     }
-    
+
     var body: some View {
         HStack {
             Text(title)
@@ -668,7 +679,7 @@ struct DeveloperSettingsView: View {
     @State private var enableDebugLogging = false
     @State private var mockDataEnabled = false
     @State private var simulateErrors = false
-    
+
     var body: some View {
         List {
             Section("Debug Options") {
@@ -676,13 +687,13 @@ struct DeveloperSettingsView: View {
                 Toggle("Use Mock Data", isOn: $mockDataEnabled)
                 Toggle("Simulate Connection Errors", isOn: $simulateErrors)
             }
-            
+
             Section("Reset Options") {
                 Button("Reset All Settings") {
                     // TODO: Reset settings
                 }
                 .foregroundColor(.orange)
-                
+
                 Button("Clear Debug Logs") {
                     // TODO: Clear logs
                 }
