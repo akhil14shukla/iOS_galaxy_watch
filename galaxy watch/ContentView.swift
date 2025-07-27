@@ -12,8 +12,45 @@ struct ContentView: View {
     @State private var serverPort = "8080"
     @State private var discoveredServers: [String] = []
     @State private var isDiscoveringServers = false
+    @State private var selectedTab = 0
 
     var body: some View {
+        TabView(selection: $selectedTab) {
+            // Main Sync View
+            mainSyncView
+                .tabItem {
+                    Image(systemName: "sync.circle")
+                    Text("Sync")
+                }
+                .tag(0)
+            
+            // Live Dashboard
+            LiveHealthDashboard()
+                .tabItem {
+                    Image(systemName: "heart.text.square")
+                    Text("Live")
+                }
+                .tag(1)
+            
+            // Analytics View
+            AnalyticsView()
+                .tabItem {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                    Text("Analytics")
+                }
+                .tag(2)
+            
+            // Settings View
+            EnhancedSettingsView()
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Settings")
+                }
+                .tag(3)
+        }
+    }
+    
+    private var mainSyncView: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
@@ -48,6 +85,184 @@ struct ContentView: View {
                 bluetoothDevicesSheet
             }
         }
+    }
+    
+    private var settingsView: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // App Information
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("About")
+                            .font(.headline)
+                        
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("Version")
+                                Spacer()
+                                Text("2.0.0")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack {
+                                Text("Build")
+                                Spacer()
+                                Text("2025.1")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack {
+                                Text("Platform")
+                                Spacer()
+                                Text("iOS 18.5+")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    // Privacy & Security
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Privacy & Security")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("✓ All data stays on your local network")
+                            Text("✓ No cloud services required")
+                            Text("✓ End-to-end encryption for Bluetooth")
+                            Text("✓ Open source components")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    // Feature Status
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Features")
+                            .font(.headline)
+                        
+                        VStack(spacing: 8) {
+                            FeatureStatusRow(
+                                title: "Galaxy Watch BLE",
+                                status: bluetoothManager.isScanning ? .active : .inactive,
+                                description: "Bluetooth Low Energy connection"
+                            )
+                            
+                            FeatureStatusRow(
+                                title: "Local Server",
+                                status: localServerClient.isConnected ? .active : .inactive,
+                                description: "HTTP-based data synchronization"
+                            )
+                            
+                            FeatureStatusRow(
+                                title: "Apple Health",
+                                status: .active,
+                                description: "Health data integration"
+                            )
+                            
+                            FeatureStatusRow(
+                                title: "Real-time Streaming",
+                                status: .active,
+                                description: "WebSocket live updates"
+                            )
+                            
+                            FeatureStatusRow(
+                                title: "Analytics",
+                                status: .active,
+                                description: "Advanced health insights"
+                            )
+                        }
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    // Support & Help
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Support")
+                            .font(.headline)
+                        
+                        VStack(spacing: 8) {
+                            Button("View Documentation") {
+                                // Open documentation
+                            }
+                            .foregroundColor(.blue)
+                            
+                            Button("Report Issue") {
+                                // Open issue reporting
+                            }
+                            .foregroundColor(.blue)
+                            
+                            Button("Check for Updates") {
+                                // Check for updates
+                            }
+                            .foregroundColor(.blue)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    Spacer(minLength: 20)
+                }
+                .padding()
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.large)
+        }
+    }
+}
+
+struct FeatureStatusRow: View {
+    let title: String
+    let status: FeatureStatus
+    let description: String
+    
+    enum FeatureStatus {
+        case active, inactive, warning
+        
+        var color: Color {
+            switch self {
+            case .active: return .green
+            case .inactive: return .gray
+            case .warning: return .orange
+            }
+        }
+        
+        var icon: String {
+            switch self {
+            case .active: return "checkmark.circle.fill"
+            case .inactive: return "circle"
+            case .warning: return "exclamationmark.triangle.fill"
+            }
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: status.icon)
+                .foregroundColor(status.color)
+                .font(.title3)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+    }
     }
     
     // MARK: - Header Section
